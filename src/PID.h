@@ -1,6 +1,5 @@
 #ifndef PID_H
 #define PID_H
-
 class PID {
  public:
   /**
@@ -31,6 +30,13 @@ class PID {
    */
   double TotalError();
 
+  /**
+   * PID Coefficients
+   */
+  double Kp;
+  double Ki;
+  double Kd;
+
  private:
   /**
    * PID Errors
@@ -39,12 +45,7 @@ class PID {
   double i_error;
   double d_error;
 
-  /**
-   * PID Coefficients
-   */ 
-  double Kp;
-  double Ki;
-  double Kd;
 };
+PID twiddle(PID pid, double cte, double tol, double *dp);
 
 #endif  // PID_H
