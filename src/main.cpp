@@ -4,6 +4,7 @@
 #include <string>
 #include "json.hpp"
 #include "PID.h"
+#include <algorithm>
 
 // for convenience
 using nlohmann::json;
@@ -34,18 +35,23 @@ int main() {
   uWS::Hub h;
 
   PID pid;
+  PID pid_throttle;
   /**
    * TODO: Initialize the pid variable.
    */
-  // pid.Init(0.06, 0.0003, 1.29);
-  pid.Init(0.055, 0.0003, 0.9);
+  pid.Init(0.05, 0.01, 0.01);
+  pid_throttle.Init(0.4, 0, 0);
 
   // double dp[3] = {1, 1, 1}; // maybe adjust this value, need global
-  double dp[3] = {0, 0, 0}; // so the twiddle will faild
+  double dp[3] = {0.01, 0.001, 0.001}; // so the twiddle will faild
   double tol = 0.001;
-  int iteration = 0;
+  int times_twiddle = 0;
+  bool plused = true;
+  float best_err = std::numeric_limits<float>::max();
+  double total_error = 0;
+  bool dp_change = true;
 
-  h.onMessage([&pid, &dp, tol, &iteration](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  h.onMessage([&pid, &pid_throttle, &dp, &total_error,tol, &plused, &dp_change, &best_err, &times_twiddle](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -62,8 +68,10 @@ int main() {
           // j[1] is the data JSON object
           double cte = std::stod(j[1]["cte"].get<string>());
           // double speed = std::stod(j[1]["speed"].get<string>());
-          // double angle = std::stod(j[1]["steering_angle"].get<string>());
+          double angle = std::stod(j[1]["steering_angle"].get<string>());
+          std::cout << "angle" << angle << std::endl;
           double steer_value;
+          double throttle;
           /**
            * TODO: Calculate steering value here, remember the steering value is
            *   [-1, 1].
@@ -79,11 +87,21 @@ int main() {
           //   dp[2] = 1;
           //   // adjust again
           // }
-          pid = twiddle(pid, cte, tol, dp); // cover pid.UpdateError(cte);
-          // std::cout << "after twiddle p i d: " << pid.Kp << " " << pid.Ki << " " << pid.Kd << std::endl;
+          pid.UpdateError(cte);
+          // total_error += pow(cte,2);
+          total_error += fabs(pid.TotalError());
+          twiddle(pid, total_error, tol, dp, plused, dp_change, best_err, times_twiddle);
+          pid.UpdateError(cte);
+          std::cout << "times_twiddle: " << times_twiddle << std::endl;
+          std::cout << "after twiddle p i d: " << pid.Kp << " " << pid.Ki << " " << pid.Kd << std::endl;
+          std::cout << "after twiddle dp: " << dp[0] << " " << dp[1] << " " << dp[2] << std::endl;
+          std::cout << "best_err: " << best_err << std::endl;
           steer_value = pid.TotalError();
-          std::cout << steer_value << std::endl;
+          std::cout << "steer_value: "<< steer_value << std::endl;
 
+          // pid_throttle = twiddle(pid_throttle, 1/std::max(fabs(angle), 0.00001), tol, dp);
+          // throttle = - pid_throttle.TotalError();
+          // std::cout << "throttle" << throttle << std::endl;
 
 
 
@@ -93,6 +111,7 @@ int main() {
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
+          // msgJson["throttle"] = std::min(throttle, 0.3); // default 0.3;
           msgJson["throttle"] = 0.3;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           // std::cout << msg << std::endl;

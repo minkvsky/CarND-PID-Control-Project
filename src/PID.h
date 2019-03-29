@@ -46,6 +46,6 @@ class PID {
   double d_error;
 
 };
-PID twiddle(PID pid, double cte, double tol, double *dp);
+void twiddle(PID &pid, double &total_error, double tol, double *dp, bool &plused, bool &dp_change, float &best_err, int &times_twiddle);
 
 #endif  // PID_H
