@@ -21,6 +21,19 @@ To solve the problem "systematic bias", which is  a mistake caused by mechanic, 
 
 I try to use twiddle; But the hyperparameters always become negative and then the car go out of the road. What's wrong with my code?
 
+Firstly, I tune the hyperparameters manually; Steps as following:
+
+1. Set all gains to zero.
+
+2. add P gain until the car can go through the first turn successfully;(0.04-0.05)
+
+3. add D gain until the the oscillations go away;(1.2-2)
+
+4. Repeat step 2 and 3 until increasing the D gain does not stop the oscillations(P: 0.11, D: 2.0);
+
+5. Increase the I gain until the car can go through the road.(I : 0.001)
+
+Secondly, I try to tune the hyperparameters by twiddle; I start twiddling from the best hyperparameters manually; but I can't let the car go through the road;
 ## Dependencies
 
 * cmake >= 3.5

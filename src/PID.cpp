@@ -85,7 +85,8 @@ double PID::TotalError() {
 //   return pid;
 // }
 
-void twiddle(PID &pid, double &total_error, double tol, double *dp, bool &plused, bool &dp_change, float &best_err, int &times_twiddle){
+void twiddle(PID &pid, double &total_error, double tol, double *dp, bool &plused, bool &dp_change,
+    float &best_err, int &times_twiddle){
     // you should pid.update before using twiddle;there is no update in twiddle
     // plused;step for minus or plus
     // plused = True (init)

@@ -39,12 +39,12 @@ int main() {
   /**
    * TODO: Initialize the pid variable.
    */
-  pid.Init(0.05, 0.01, 0.01);
+  pid.Init(0.11, 0.001, 2.0);// best manually
   pid_throttle.Init(0.4, 0, 0);
 
   // double dp[3] = {1, 1, 1}; // maybe adjust this value, need global
-  double dp[3] = {0.01, 0.001, 0.001}; // so the twiddle will faild
-  double tol = 0.001;
+  double dp[3] = {0.001, 0.0001, 0.02};
+  double tol = 0.1;// large enough will lead to twiddle inavailabe
   int times_twiddle = 0;
   bool plused = true;
   float best_err = std::numeric_limits<float>::max();
@@ -91,7 +91,7 @@ int main() {
           // total_error += pow(cte,2);
           total_error += fabs(pid.TotalError());
           twiddle(pid, total_error, tol, dp, plused, dp_change, best_err, times_twiddle);
-          pid.UpdateError(cte);
+          // pid.UpdateError(cte);
           std::cout << "times_twiddle: " << times_twiddle << std::endl;
           std::cout << "after twiddle p i d: " << pid.Kp << " " << pid.Ki << " " << pid.Kd << std::endl;
           std::cout << "after twiddle dp: " << dp[0] << " " << dp[1] << " " << dp[2] << std::endl;
